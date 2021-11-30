@@ -9,11 +9,18 @@ public class EnemyIA : MonoBehaviour
     private float _Speed = 2f;
 
     [SerializeField]
+    private AudioClip _clip;
+
+    private UIManager _uiManager;
+
+    
+
+    [SerializeField]
     private GameObject _EnemyExplosionPrefab;
     // Start is called before the first frame update
     void Start()
     {
-        
+        _uiManager = GameObject.Find("Canvas").GetComponent<UIManager>();
     }
 
     // Update is called once per frame
@@ -43,6 +50,8 @@ public class EnemyIA : MonoBehaviour
 
             Destroy(this.gameObject);
             Instantiate(_EnemyExplosionPrefab, transform.position, Quaternion.identity);
+            _uiManager.UpdateScore();
+            AudioSource.PlayClipAtPoint(_clip, Camera.main.transform.position);
             Destroy(other.gameObject);
         }
         else if( other.tag == "Player")
@@ -54,6 +63,7 @@ public class EnemyIA : MonoBehaviour
                 player.Damage();
             }
             Instantiate(_EnemyExplosionPrefab, transform.position, Quaternion.identity);
+            AudioSource.PlayClipAtPoint(_clip, Camera.main.transform.position);
             Destroy(this.gameObject);
 
         }

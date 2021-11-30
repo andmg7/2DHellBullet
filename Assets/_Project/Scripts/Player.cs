@@ -26,6 +26,9 @@ public class Player : MonoBehaviour
     private GameObject _shieldGameObject;
 
     [SerializeField]
+    private GameObject[] _engines;
+
+    [SerializeField]
     private float _fireRate = .20f;
 
     private float _canFire = .0f;
@@ -33,7 +36,12 @@ public class Player : MonoBehaviour
     [ SerializeField ]
     private float _speed = 5.0f;
 
-    private UIManager _uiManager; 
+    private UIManager _uiManager;
+    private GameManager _gameManager;
+    private SpawnManager _spawnManager;
+    private AudioSource _audioSource;
+
+    private int hitCount = 0;
 
     // Start is called before the first frame update
     private void Start()
@@ -47,6 +55,19 @@ public class Player : MonoBehaviour
         {
             _uiManager.UpdateLives(lives);
         }
+
+        _gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        _spawnManager = GameObject.Find("Spawn_Manager").GetComponent<SpawnManager>();
+
+        if(_spawnManager != null)
+        {
+            _spawnManager.StartSpawnRoutine(); 
+        }
+
+        _audioSource = GetComponent<AudioSource>();
+
+        hitCount = 0;
+
     }
 
     // Update is called once per frame
@@ -69,6 +90,7 @@ public class Player : MonoBehaviour
          
         if (Time.time > _canFire)
         {
+            _audioSource.Play();
             if (TripleShoot == true)
             {
                 // triple shoot
@@ -129,19 +151,37 @@ public class Player : MonoBehaviour
     //Damage on player
     public void Damage()
     {
+        
+
         if(ShieldsActive == true)
         {
             ShieldsActive = false;
             _shieldGameObject.SetActive(false);
             return;
         }
-        
+
+        hitCount++;
+
+        if (hitCount == 1)
+        {
+            //encender el fallo del motor izq
+            _engines[0].SetActive(true);
+        }
+        else if (hitCount == 2)
+        {
+            //encender el fallo del motor derecho
+            _engines[1].SetActive(true);
+        }
+
         //reduce 1 life from player when its damaged and if lives(0) < 1 --> destroy player un metodo para hacerlo Lives = Lives - 1;
         lives--;
+
         _uiManager.UpdateLives(lives);
         if(lives < 1)
         {
             Instantiate(_ExplosionPrefab, transform.position, Quaternion.identity);
+            _gameManager.gameOver = true;
+            _uiManager.ShowTitleScreen();
             Destroy(this.gameObject);
         }
     }
